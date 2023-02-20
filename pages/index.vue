@@ -5,15 +5,25 @@
       <v-card>
         <p>価格</p>
         <p>
-          平均: {{ Math.round(prediction?.price / 10000).toLocaleString() }}万円
+          平均:
+          {{ Math.round(predictions[0]?.price / 10000).toLocaleString() }}万円
         </p>
         <p>
           上位10%:
-          {{ Math.round(prediction?.price_90 / 10000).toLocaleString() }}万円
+          {{
+            Math.round(predictions[0]?.price_90 / 10000).toLocaleString()
+          }}万円
         </p>
         <p>
           下位10%:
-          {{ Math.round(prediction?.price_10 / 10000).toLocaleString() }}万円
+          {{
+            Math.round(predictions[0]?.price_10 / 10000).toLocaleString()
+          }}万円
+        </p>
+        <p>価格トレンド</p>
+        <p v-for="(pred, idx) in predictions" :key="idx">
+          {{ 2023 - idx }}年
+          {{ Math.round(pred?.price / 10000).toLocaleString() }}万円
         </p>
       </v-card>
 
@@ -97,6 +107,8 @@
 </template>
 
 <script>
+import _ from 'lodash'
+
 export default {
   name: 'IndexPage',
   async asyncData({ $axios, $config }) {
@@ -113,30 +125,35 @@ export default {
       floor_area: 100,
       front_road_width: 20,
       building_year: 2000,
-      prediction: {},
+      predictions: _.map(_.range(10), () => {}),
       timer: null,
     }
   },
   mounted() {
     this.timer = setInterval(async () => {
-      const params = {
-        prefecture: this.prefecture,
-        city: this.city,
-        city2: this.city2,
-        city_plan: this.city_plan,
-        nearest_sta: this.nearest_sta,
-        nearest_sta_dist: this.nearest_sta_dist,
-        area: this.area,
-        floor_area: this.floor_area,
-        front_road_width: this.front_road_width,
-        time: 202300,
-        building_year: this.building_year,
+      for (let i = 0; i < 10; i++) {
+        const params = {
+          prefecture: this.prefecture,
+          city: this.city,
+          city2: this.city2,
+          city_plan: this.city_plan,
+          nearest_sta: this.nearest_sta,
+          nearest_sta_dist: this.nearest_sta_dist,
+          area: this.area,
+          floor_area: this.floor_area,
+          front_road_width: this.front_road_width,
+          time: 202300 - 100 * i,
+          building_year: this.building_year,
+        }
+        this.$set(
+          this.predictions,
+          i,
+          await this.$axios.$get(this.$config.apiBaseUrl + '/predict', {
+            params,
+          })
+        )
       }
-      this.prediction = await this.$axios.$get(
-        this.$config.apiBaseUrl + '/predict',
-        { params }
-      )
-    }, 100)
+    }, 200)
   },
   beforeDestroy() {
     clearInterval(this.timer)
