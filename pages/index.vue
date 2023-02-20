@@ -50,15 +50,10 @@
           v-model="nearest_sta"
           label="最寄り駅"
           :items="
-            nearest_staItems[prefecture + ':' + city + ':' + city2] ||
+            // nearest_staItems[prefecture + ':' + city + ':' + city2] ||
             metadata.unique_values.nearest_sta
           "
         ></v-autocomplete>
-        <v-select
-          v-model="city_plan"
-          label="都市計画"
-          :items="metadata.unique_values.city_plan"
-        ></v-select>
         <v-text-field
           v-model="nearest_sta_dist"
           label="最寄り駅距離(分)"
@@ -66,6 +61,11 @@
           :max="Math.max(...metadata.unique_values.nearest_sta_dist)"
           :min="Math.min(...metadata.unique_values.nearest_sta_dist)"
         />
+        <v-select
+          v-model="city_plan"
+          label="都市計画"
+          :items="metadata.unique_values.city_plan"
+        ></v-select>
         <v-text-field
           v-model="area"
           label="土地面積(m^2)"
@@ -182,6 +182,11 @@ export default {
             front_road_width: this.front_road_width,
             time: 202300 - 100 * i,
             building_year: this.building_year,
+          }
+          for (const k in params) {
+            if (!params[k]) {
+              delete params[k]
+            }
           }
           this.$set(
             this.predictions,
