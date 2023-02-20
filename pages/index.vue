@@ -107,6 +107,12 @@
           :min="Math.min(...metadata.unique_values.building_year)"
         />
       </v-card>
+      <v-card-title> 使い方 </v-card-title>
+      <v-card>
+        <ul>
+          <li>値がわからない場合は空白にする</li>
+        </ul>
+      </v-card>
     </v-col>
   </v-row>
 </template>
