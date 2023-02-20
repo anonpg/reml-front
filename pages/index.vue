@@ -37,23 +37,28 @@
         <v-autocomplete
           v-model="city"
           label="市区町村"
-          :items="metadata.unique_values.city"
+          :items="cityItems[prefecture] || metadata.unique_values.city"
         ></v-autocomplete>
         <v-autocomplete
           v-model="city2"
           label="町"
-          :items="metadata.unique_values.city2"
+          :items="
+            city2Items[prefecture + ':' + city] || metadata.unique_values.city2
+          "
+        ></v-autocomplete>
+        <v-autocomplete
+          v-model="nearest_sta"
+          label="最寄り駅"
+          :items="
+            nearest_staItems[prefecture + ':' + city + ':' + city2] ||
+            metadata.unique_values.nearest_sta
+          "
         ></v-autocomplete>
         <v-select
           v-model="city_plan"
           label="都市計画"
           :items="metadata.unique_values.city_plan"
         ></v-select>
-        <v-autocomplete
-          v-model="nearest_sta"
-          label="最寄り駅"
-          :items="metadata.unique_values.nearest_sta"
-        ></v-autocomplete>
         <v-text-field
           v-model="nearest_sta_dist"
           label="最寄り駅距離(分)"
@@ -123,35 +128,72 @@ export default {
       nearest_sta_dist: 3,
       area: 100,
       floor_area: 100,
-      front_road_width: 20,
+      front_road_width: 10,
       building_year: 2000,
       predictions: _.map(_.range(10), () => {}),
       timer: null,
     }
   },
+  computed: {
+    prefecture_city_city2_nearest_sta() {
+      const x = _.compact(
+        this.metadata.unique_values.prefecture_city_city2_nearest_sta
+      )
+      return _.map(x, (y) => {
+        return y.split(':')
+      })
+    },
+    cityItems() {
+      const x = _.groupBy(this.prefecture_city_city2_nearest_sta, 0)
+      return _.mapValues(x, (y) => {
+        return _.sortedUniq(_.map(y, 1))
+      })
+    },
+    city2Items() {
+      const x = _.groupBy(this.prefecture_city_city2_nearest_sta, (y) => {
+        return y[0] + ':' + y[1]
+      })
+      return _.mapValues(x, (y) => {
+        return _.sortedUniq(_.map(y, 2))
+      })
+    },
+    nearest_staItems() {
+      const x = _.groupBy(this.prefecture_city_city2_nearest_sta, (y) => {
+        return y[0] + ':' + y[1] + ':' + y[2]
+      })
+      return _.mapValues(x, (y) => {
+        return _.sortedUniq(_.map(y, 3))
+      })
+    },
+  },
   mounted() {
     this.timer = setInterval(async () => {
       for (let i = 0; i < 10; i++) {
-        const params = {
-          prefecture: this.prefecture,
-          city: this.city,
-          city2: this.city2,
-          city_plan: this.city_plan,
-          nearest_sta: this.nearest_sta,
-          nearest_sta_dist: this.nearest_sta_dist,
-          area: this.area,
-          floor_area: this.floor_area,
-          front_road_width: this.front_road_width,
-          time: 202300 - 100 * i,
-          building_year: this.building_year,
+        try {
+          const params = {
+            prefecture: this.prefecture,
+            city: this.city,
+            city2: this.city2,
+            city_plan: this.city_plan,
+            nearest_sta: this.nearest_sta,
+            nearest_sta_dist: this.nearest_sta_dist,
+            area: this.area,
+            floor_area: this.floor_area,
+            front_road_width: this.front_road_width,
+            time: 202300 - 100 * i,
+            building_year: this.building_year,
+          }
+          this.$set(
+            this.predictions,
+            i,
+            await this.$axios.$get(this.$config.apiBaseUrl + '/predict', {
+              params,
+            })
+          )
+        } catch (err) {
+          console.error(err)
+          this.$set(this.predictions, i, {})
         }
-        this.$set(
-          this.predictions,
-          i,
-          await this.$axios.$get(this.$config.apiBaseUrl + '/predict', {
-            params,
-          })
-        )
       }
     }, 200)
   },
