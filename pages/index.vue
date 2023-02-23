@@ -29,19 +29,24 @@
 
       <v-card-title> 入力データ </v-card-title>
       <v-card>
+        <v-select
+          v-model="type"
+          label="種類 (必須)"
+          :items="metadata.unique_values.type"
+        ></v-select>
         <v-autocomplete
           v-model="prefecture"
-          label="県"
+          label="県 (必須)"
           :items="metadata.unique_values.prefecture"
         ></v-autocomplete>
         <v-autocomplete
           v-model="city"
-          label="市区町村"
+          label="市区町村 (必須)"
           :items="cityItems[prefecture] || metadata.unique_values.city"
         ></v-autocomplete>
         <v-autocomplete
           v-model="city2"
-          label="町"
+          label="所在地"
           :items="
             city2Items[prefecture + ':' + city] || metadata.unique_values.city2
           "
@@ -64,18 +69,19 @@
         <v-select
           v-model="city_plan"
           label="都市計画"
-          :items="metadata.unique_values.city_plan"
+          :items="['', ...metadata.unique_values.city_plan]"
         ></v-select>
         <v-text-field
           v-model="area"
-          label="土地面積(m^2)"
+          label="面積(m^2) (土地面積。中古マンション等の場合は専有部分の床面積。必須)"
           type="number"
           :max="Math.max(...metadata.unique_values.area)"
           :min="Math.min(...metadata.unique_values.area)"
         />
         <v-text-field
+          v-if="type == '宅地(土地と建物)'"
           v-model="floor_area"
-          label="建物面積(m^2)"
+          label="建物延床面積(m^2)"
           type="number"
           :max="Math.max(...metadata.unique_values.floor_area)"
           :min="Math.min(...metadata.unique_values.floor_area)"
@@ -90,7 +96,7 @@
         <!--        ></v-select>-->
         <v-text-field
           v-model="front_road_width"
-          label="前面道路:道幅(m)"
+          label="前面道路:幅員(m)"
           type="number"
           :max="Math.max(...metadata.unique_values.front_road_width)"
           :min="Math.min(...metadata.unique_values.front_road_width)"
@@ -100,8 +106,9 @@
         <!--          :items="metadata.unique_values.structure"-->
         <!--        ></v-select>-->
         <v-text-field
+          v-if="type === '宅地(土地と建物)' || type === '中古マンション等'"
           v-model="building_year"
-          label="築年"
+          label="築年 (例: 1990)"
           type="number"
           :max="Math.max(...metadata.unique_values.building_year)"
           :min="Math.min(...metadata.unique_values.building_year)"
@@ -111,6 +118,11 @@
       <v-card>
         <ul>
           <li>値がわからない場合は空白にする</li>
+          <li>
+            <a href="https://www.land.mlit.go.jp/webland/note.html#syurui"
+              >項目について(国土交通省)</a
+            >
+          </li>
         </ul>
       </v-card>
     </v-col>
@@ -126,6 +138,7 @@ export default {
     const metadata = await $axios.$get($config.apiBaseUrl + '/metadata')
     return {
       metadata,
+      type: '中古マンション等',
       prefecture: '東京都',
       city: '渋谷区',
       city2: '渋谷',
@@ -174,9 +187,12 @@ export default {
   },
   mounted() {
     this.timer = setInterval(async () => {
+      const type = this.type
+
       for (let i = 0; i < 10; i++) {
         try {
           const params = {
+            type: this.type,
             prefecture: this.prefecture,
             city: this.city,
             city2: this.city2,
@@ -184,10 +200,13 @@ export default {
             nearest_sta: this.nearest_sta,
             nearest_sta_dist: this.nearest_sta_dist,
             area: this.area,
-            floor_area: this.floor_area,
+            floor_area: type === '宅地(土地と建物)' ? this.floor_area : '',
             front_road_width: this.front_road_width,
             time: 202300 - 100 * i,
-            building_year: this.building_year,
+            building_year:
+              type === '宅地(土地と建物)' || type === '中古マンション等'
+                ? this.building_year
+                : '',
           }
           for (const k in params) {
             if (!params[k]) {
