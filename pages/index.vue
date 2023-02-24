@@ -189,43 +189,49 @@ export default {
     this.timer = setInterval(async () => {
       const type = this.type
 
-      for (let i = 0; i < 10; i++) {
-        try {
-          const params = {
-            type: this.type,
-            prefecture: this.prefecture,
-            city: this.city,
-            city2: this.city2,
-            city_plan: this.city_plan,
-            nearest_sta: this.nearest_sta,
-            nearest_sta_dist: this.nearest_sta_dist,
-            area: this.area,
-            floor_area: type === '宅地(土地と建物)' ? this.floor_area : '',
-            front_road_width: this.front_road_width,
-            time: 202300 - 100 * i,
-            building_year:
-              type === '宅地(土地と建物)' || type === '中古マンション等'
-                ? this.building_year
-                : '',
+      const params = _.map(_.range(10), (i) => {
+        const x = {
+          type: this.type,
+          prefecture: this.prefecture,
+          city: this.city,
+          city2: this.city2,
+          city_plan: this.city_plan,
+          nearest_sta: this.nearest_sta,
+          nearest_sta_dist: this.nearest_sta_dist,
+          area: Math.round(this.area),
+          floor_area:
+            type === '宅地(土地と建物)' ? Math.round(this.floor_area) : '',
+          front_road_width: this.front_road_width,
+          time: 202300 - 100 * i,
+          building_year:
+            type === '宅地(土地と建物)' || type === '中古マンション等'
+              ? this.building_year
+              : '',
+        }
+        for (const k in x) {
+          if (!x[k]) {
+            delete x[k]
           }
-          for (const k in params) {
-            if (!params[k]) {
-              delete params[k]
-            }
-          }
-          this.$set(
-            this.predictions,
-            i,
-            await this.$axios.$get(this.$config.apiBaseUrl + '/predict', {
-              params,
-            })
-          )
-        } catch (err) {
-          console.error(err)
+        }
+        return x
+      })
+
+      try {
+        const result = await this.$axios.$post(
+          this.$config.apiBaseUrl + '/predict',
+          params
+        )
+
+        for (let i = 0; i < 10; i++) {
+          this.$set(this.predictions, i, result[i])
+        }
+      } catch (err) {
+        console.error(err)
+        for (let i = 0; i < 10; i++) {
           this.$set(this.predictions, i, {})
         }
       }
-    }, 200)
+    }, 1000)
   },
   beforeDestroy() {
     clearInterval(this.timer)
