@@ -187,6 +187,8 @@ export default {
   },
   mounted() {
     this.timer = setInterval(async () => {
+      if (document.hidden) return
+
       const type = this.type
 
       const params = _.map(_.range(10), (i) => {
