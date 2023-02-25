@@ -81,5 +81,7 @@ export default {
 
   publicRuntimeConfig: {
     apiBaseUrl: process.env.API_BASE_URL || 'http://locahost:8000',
+    rakumachisUrl:
+      process.env.RAKUMACHIS_URL || process.env.API_BASE_URL + '/rakumachis',
   },
 }

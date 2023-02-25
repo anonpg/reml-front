@@ -1,5 +1,5 @@
 <template>
-  <v-row justify="center" align="center">
+  <v-row justify="center">
     <v-col cols="12" sm="8" md="6">
       <v-card-title> 予測結果 </v-card-title>
       <v-card>
@@ -26,7 +26,8 @@
           {{ Math.round(pred?.price / 10000).toLocaleString() }}万円
         </p>
       </v-card>
-
+    </v-col>
+    <v-col cols="12" sm="8" md="6">
       <v-card-title> 入力データ </v-card-title>
       <v-card>
         <v-select
