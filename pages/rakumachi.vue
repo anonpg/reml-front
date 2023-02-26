@@ -475,6 +475,10 @@ export default {
               text: 'シェアリング',
               value: 'shareUrl',
             },
+            {
+              text: '現況',
+              value: 'status',
+            },
           ]
     },
   },
