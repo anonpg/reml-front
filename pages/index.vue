@@ -29,6 +29,7 @@
     </v-col>
     <v-col cols="12" sm="8" md="6">
       <v-card-title> 入力データ </v-card-title>
+      <p>共有リンク: {{ shareUrl }}</p>
       <v-card>
         <v-select
           v-model="type"
@@ -135,10 +136,10 @@ import _ from 'lodash'
 
 export default {
   name: 'IndexPage',
-  async asyncData({ $axios, $config }) {
+  async asyncData({ route, $axios, $config }) {
     const metadata = await $axios.$get($config.apiBaseUrl + '/metadata')
-    return {
-      metadata,
+
+    const params = {
       type: '中古マンション等',
       prefecture: '東京都',
       city: '渋谷区',
@@ -150,11 +151,44 @@ export default {
       floor_area: 100,
       front_road_width: 10,
       building_year: 2000,
+    }
+    _.each(params, (_v, k) => {
+      if (_.has(route.query, k)) {
+        params[k] = route.query[k] || ''
+      }
+    })
+
+    return {
+      metadata,
+      ...params,
       predictions: _.map(_.range(10), () => {}),
       timer: null,
     }
   },
   computed: {
+    shareUrl() {
+      const base = location.protocol + '//' + location.host + '/'
+      return (
+        base +
+        '?' +
+        _.map(
+          [
+            'type',
+            'prefecture',
+            'city',
+            'city2',
+            'city_plan',
+            'nearest_sta',
+            'nearest_sta_dist',
+            'area',
+            'floor_area',
+            'front_road_width',
+            'building_year',
+          ],
+          (k) => k + '=' + this[k]
+        ).join('&')
+      )
+    },
     prefecture_city_city2_nearest_sta() {
       const x = _.compact(
         this.metadata.unique_values.prefecture_city_city2_nearest_sta

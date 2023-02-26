@@ -81,6 +81,11 @@ export default {
           title: 'Rakumachi',
           to: '/rakumachi',
         },
+        {
+          icon: 'mdi-chart-bubble',
+          title: 'Simulator',
+          to: '/simulator',
+        },
       ],
       miniVariant: false,
       right: true,

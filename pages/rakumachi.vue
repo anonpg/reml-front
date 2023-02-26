@@ -83,6 +83,10 @@ export default {
     const nearest_sta_set = new Set(metadata.unique_values.nearest_sta)
 
     rakumachis = _.map(rakumachis, (x) => {
+      x.use_districts = x.use_districts
+        ?.replace('一', '１')
+        ?.replace('二', '２')
+
       const type_processed = x.exclusive_area
         ? '中古マンション等'
         : x.floor_area
@@ -253,6 +257,8 @@ export default {
       })
     )
 
+    const base = location.protocol + '//' + location.host + '/'
+
     const result = await $axios.$post($config.apiBaseUrl + '/predict', params)
     rakumachis = _.map(rakumachis, (x, i) => {
       const price_predict = x.predict_enabled
@@ -261,6 +267,27 @@ export default {
       const price_predict_old = x.predict_enabled
         ? Math.round(result[2 * i + 1].price)
         : ''
+
+      const shareUrl =
+        base +
+        '?' +
+        _.map(
+          [
+            'type',
+            'prefecture',
+            'city',
+            'city2',
+            'city_plan',
+            'nearest_sta',
+            'nearest_sta_dist',
+            'area',
+            'floor_area',
+            'front_road_width',
+            'building_year',
+          ],
+          (k) => k + '=' + (params[2 * i + 0][k] || '')
+        ).join('&')
+
       return {
         ...x,
         price_predict,
@@ -268,6 +295,7 @@ export default {
         price_predict_disp: price_predict,
         price_predict_old_disp: price_predict_old,
         price_relative_disp: x.price_processed / price_predict - 1,
+        shareUrl,
       }
     })
 
@@ -438,6 +466,14 @@ export default {
             {
               text: '利回り',
               value: 'yield_processed',
+            },
+            {
+              text: 'Path',
+              value: 'path',
+            },
+            {
+              text: 'シェアリング',
+              value: 'shareUrl',
             },
           ]
     },
