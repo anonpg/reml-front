@@ -35,6 +35,20 @@
           <template #[`item.yield_processed`]="{ item }">
             {{ Math.round(item.yield_processed * 100 * 10) / 10 }}%
           </template>
+          <template #[`item.yield_predict`]="{ item }">
+            {{ Math.round(item.yield_predict * 100 * 10) / 10 }}%
+          </template>
+          <template #[`item.total_yield`]="{ item }">
+            {{ Math.round(item.total_yield * 100 * 10) / 10 }}%
+          </template>
+          <template #[`item.shareUrl`]="{ item }">
+            <a
+              :href="item.shareUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ item.shareUrl }}</a
+            >
+          </template>
         </v-data-table>
       </v-card>
     </v-col>
@@ -138,7 +152,7 @@ export default {
         +(_.get(x.exclusive_area?.match(/([0-9.]+)m2/), 1) || '') || ''
 
       let address = x.address || ''
-      const prefecture_processed = _.get(address.match(/^.+[都道府県]/), 0)
+      const prefecture_processed = _.get(address.match(/^.+?[都道府県]/), 0)
       address = address.slice(prefecture_processed.length)
 
       let city_processed = ''
@@ -288,6 +302,9 @@ export default {
           (k) => k + '=' + (params[2 * i + 0][k] || '')
         ).join('&')
 
+      const yield_predict =
+        (x.yield_processed * x.price_processed) / price_predict
+
       return {
         ...x,
         price_predict,
@@ -295,6 +312,11 @@ export default {
         price_predict_disp: price_predict,
         price_predict_old_disp: price_predict_old,
         price_relative_disp: x.price_processed / price_predict - 1,
+        yield_predict,
+        total_yield:
+          x.yield_processed +
+          Math.pow(price_predict / price_predict_old, 1.0 / 10) -
+          1,
         shareUrl,
       }
     })
@@ -466,6 +488,14 @@ export default {
             {
               text: '利回り',
               value: 'yield_processed',
+            },
+            {
+              text: '適正価格利回り',
+              value: 'yield_predict',
+            },
+            {
+              text: '合計利回り',
+              value: 'total_yield',
             },
             {
               text: 'Path',

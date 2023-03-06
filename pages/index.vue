@@ -25,11 +25,16 @@
           {{ 2023 - idx }}年
           {{ Math.round(pred?.price / 10000).toLocaleString() }}万円
         </p>
+        <p>
+          共有リンク:
+          <a :href="shareUrl" target="_blank" rel="noopener noreferrer">{{
+            shareUrl
+          }}</a>
+        </p>
       </v-card>
     </v-col>
     <v-col cols="12" sm="8" md="6">
       <v-card-title> 入力データ </v-card-title>
-      <p>共有リンク: {{ shareUrl }}</p>
       <v-card>
         <v-select
           v-model="type"
