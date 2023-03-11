@@ -224,7 +224,7 @@ export default {
       const x = []
       let debt = this.price - this.fundOnHand
       let cash = 0
-      let bookValue = this.price
+      let bookValue = +this.price
 
       for (let i = 0; i < 30; i++) {
         // 元金均等返済
@@ -242,12 +242,12 @@ export default {
             : 0
 
         const expense =
-          (this.managementFee +
-            this.repairReserveFund +
-            this.rentManagementFee) *
+          (+this.managementFee +
+            +this.repairReserveFund +
+            +this.rentManagementFee) *
             12 +
-          this.fireInsurance +
-          this.earthquakeInsurance +
+          +this.fireInsurance +
+          +this.earthquakeInsurance +
           interest +
           (this.price * this.propertyTaxPercent) / 100 +
           depreciation
@@ -264,7 +264,7 @@ export default {
         const assets =
           cash +
           (this.price -
-            ((this.price - bookValue) * this.corporateTaxPercent) / 100)
+            ((+this.price - bookValue) * this.corporateTaxPercent) / 100)
         const netAssets = assets - debt
 
         x.push({
@@ -301,12 +301,14 @@ export default {
     },
     expense() {
       return (
-        (this.managementFee + this.repairReserveFund + this.rentManagementFee) *
+        (+this.managementFee +
+          +this.repairReserveFund +
+          +this.rentManagementFee) *
           12 +
-        this.fireInsurance +
-        this.earthquakeInsurance +
-        this.interest +
-        (this.price * this.propertyTaxPercent) / 100 +
+        +this.fireInsurance +
+        +this.earthquakeInsurance +
+        +this.interest +
+        (+this.price * this.propertyTaxPercent) / 100 +
         this.depreciation
       )
     },
